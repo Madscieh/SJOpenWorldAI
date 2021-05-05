@@ -9,6 +9,8 @@ public class IADamage : MonoBehaviour
     //public IAStarFPS iastar;
     public Animator anim;
     // Start is called before the first frame update
+    public GameObject FeatherCoin;
+    public Transform dragaoAr;
     void Start()
     {
         anim.SetBool("Die", false);
@@ -17,12 +19,11 @@ public class IADamage : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (lives < 0)
+        if (lives <= 0)
         {
-            //iastar.Dead();
-            Destroy(gameObject,4);
+            Destroy(gameObject);
             anim.SetBool("Die", true);
-
+            Instantiate(FeatherCoin, dragaoAr.position + Vector3.up * 2, Quaternion.identity);
         }
 
     }
@@ -40,11 +41,6 @@ public class IADamage : MonoBehaviour
 
     public void ExplosionDamage()
     {
-        lives =-1;
-    }
-    IEnumerator Morrer()
-    {   
-        yield return new WaitForSeconds(5);
-    
+        lives = -1;
     }
 }

@@ -23,7 +23,7 @@ public class IADamageFogo : MonoBehaviour
         {
             Destroy(gameObject);
             anim.SetBool("Die", true);
-            Instantiate(HourGlassCoin, dragaofogo.position, Quaternion.identity);
+            Instantiate(HourGlassCoin, dragaofogo.position + Vector3.up * 2, Quaternion.identity);
         }
 
     }
