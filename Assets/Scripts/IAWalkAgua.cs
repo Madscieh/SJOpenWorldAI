@@ -2,18 +2,19 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
-
-public class IAWalk : MonoBehaviour
+public class IAWalkAgua : MonoBehaviour
 {
     public NavMeshAgent agent;
     public GameObject target;
     public Animator anim;
     public Vector3 patrolposition;
     public float stoppedTime;
-    public float patrolDistance = 20;
+    public float patrolDistance = 10;
     public float timetowait = 3;
-    public float distancetotrigger = 10;
-    public float distancetoattack = 3;
+    public float distancetotrigger = 200;
+    public float distancetoattack = 100;
+    public bool AttackControl;
+
     public enum IaState
     {
         Stopped,
@@ -60,19 +61,20 @@ public class IAWalk : MonoBehaviour
         agent.SetDestination(patrolposition);
         anim.SetBool("Attack", false);
         //tempo parado
-        if (agent.velocity.magnitude < 5f)
+        if (agent.velocity.magnitude < 0.1f)
         {
             stoppedTime += Time.deltaTime;
         }
         //se for mais q timetowait segundos
-        if (stoppedTime> timetowait)
+        if (stoppedTime > timetowait)
         {
             stoppedTime = 0;
             patrolposition = new Vector3(transform.position.x + Random.Range(-patrolDistance, patrolDistance),
                 transform.position.y, transform.position.z + Random.Range(-patrolDistance, patrolDistance));
         }
         //ditancia do jogador for menor q distancetotrigger
-        if (Vector3.Distance(transform.position, target.transform.position) < distancetotrigger)
+        if (Vector3.Distance(transform.position, target.transform.position) < distancetotrigger &&
+            Vector3.Distance(transform.position, target.transform.position) >= distancetoattack)
         {
             currentState = IaState.Berserk;
         }
@@ -108,13 +110,13 @@ public class IAWalk : MonoBehaviour
         agent.isStopped = true;
         anim.SetBool("Attack", true);
         //se o jogador se afastar ele volta a perseguir
-        if (Vector3.Distance(transform.position, target.transform.position) > distancetoattack+2)
+        if (Vector3.Distance(transform.position, target.transform.position) > distancetoattack)
         {
-            currentState = IaState.Berserk;
+            currentState = IaState.Patrol;
         }
         else
         {
-            StartCoroutine(Reatacar());
+            StartCoroutine("Reatacar");
         }
     }
     void Damage()
@@ -124,16 +126,14 @@ public class IAWalk : MonoBehaviour
         anim.SetTrigger("Hit");
         currentState = IaState.Stopped;
     }
-    void Dying()
+    public void Dying()
     {
-        agent.isStopped = true;
-        anim.SetBool("Attack", false);
-        anim.SetBool("Die",true);
-        Destroy(gameObject, 3);
+        Debug.Log("Matou Dragão");
     }
     IEnumerator Reatacar()
     {
         yield return new WaitForSeconds(2);
+        anim.SetBool("Attack", false);
         Attack();
     }
 }

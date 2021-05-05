@@ -3,17 +3,19 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
-public class IAWalk : MonoBehaviour
+public class IAWalkFogo : MonoBehaviour
 {
     public NavMeshAgent agent;
     public GameObject target;
     public Animator anim;
     public Vector3 patrolposition;
     public float stoppedTime;
-    public float patrolDistance = 20;
+    public float patrolDistance=10;
     public float timetowait = 3;
-    public float distancetotrigger = 10;
-    public float distancetoattack = 3;
+    public float distancetotrigger = 200;
+    public float distancetoattack = 100;
+    public bool AttackControl;
+    
     public enum IaState
     {
         Stopped,
@@ -23,12 +25,15 @@ public class IAWalk : MonoBehaviour
         Dying,
         Patrol,
     }
+
     public IaState currentState;
+    // Start is called before the first frame update
     void Start()
     {
-        patrolposition = new Vector3(transform.position.x + Random.Range(-patrolDistance, patrolDistance),
-            transform.position.y, transform.position.z + Random.Range(-patrolDistance, patrolDistance));
+        patrolposition = new Vector3(transform.position.x + Random.Range(-patrolDistance, patrolDistance), transform.position.y, transform.position.z + Random.Range(-patrolDistance, patrolDistance));
     }
+
+    // Update is called once per frame
     void Update()
     {
         switch (currentState)
@@ -52,15 +57,17 @@ public class IAWalk : MonoBehaviour
                 Patrol();
                 break;
         }
+
         anim.SetFloat("Velocity", agent.velocity.magnitude);
     }
+
     void Patrol()
     {
         agent.isStopped = false;
         agent.SetDestination(patrolposition);
         anim.SetBool("Attack", false);
         //tempo parado
-        if (agent.velocity.magnitude < 5f)
+        if (agent.velocity.magnitude < 0.1f)
         {
             stoppedTime += Time.deltaTime;
         }
@@ -68,15 +75,16 @@ public class IAWalk : MonoBehaviour
         if (stoppedTime> timetowait)
         {
             stoppedTime = 0;
-            patrolposition = new Vector3(transform.position.x + Random.Range(-patrolDistance, patrolDistance),
-                transform.position.y, transform.position.z + Random.Range(-patrolDistance, patrolDistance));
+            patrolposition = new Vector3(transform.position.x + Random.Range(-patrolDistance, patrolDistance), transform.position.y, transform.position.z + Random.Range(-patrolDistance, patrolDistance));
         }
         //ditancia do jogador for menor q distancetotrigger
-        if (Vector3.Distance(transform.position, target.transform.position) < distancetotrigger)
+        if (Vector3.Distance(transform.position, target.transform.position) < distancetotrigger && Vector3.Distance(transform.position, target.transform.position) >= distancetoattack)
         {
             currentState = IaState.Berserk;
         }
+
     }
+
     void Stopped()
     {
         agent.isStopped = true;
@@ -97,24 +105,26 @@ public class IAWalk : MonoBehaviour
         {
             currentState = IaState.Attack;
         }
+
         //se a distancia dele for  maior q o trigger ele patrulha de novo 
         if (Vector3.Distance(transform.position, target.transform.position) > distancetotrigger)
         {
             currentState = IaState.Patrol;
         }
     }
+
     void Attack()
     {
         agent.isStopped = true;
         anim.SetBool("Attack", true);
         //se o jogador se afastar ele volta a perseguir
-        if (Vector3.Distance(transform.position, target.transform.position) > distancetoattack+2)
+        if (Vector3.Distance(transform.position, target.transform.position) > distancetoattack)
         {
             currentState = IaState.Berserk;
         }
         else
         {
-            StartCoroutine(Reatacar());
+            StartCoroutine("Reatacar");
         }
     }
     void Damage()
@@ -124,16 +134,18 @@ public class IAWalk : MonoBehaviour
         anim.SetTrigger("Hit");
         currentState = IaState.Stopped;
     }
-    void Dying()
+     public void Dying()
     {
-        agent.isStopped = true;
-        anim.SetBool("Attack", false);
-        anim.SetBool("Die",true);
-        Destroy(gameObject, 3);
+        //Instantiate(HourGlassCoin,  new Vector3 (dragaofogo.position));
+        Debug.Log("Matou Dragão");
     }
+
     IEnumerator Reatacar()
     {
         yield return new WaitForSeconds(2);
+        anim.SetBool("Attack", false);
         Attack();
     }
+
+
 }
